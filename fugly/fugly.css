@@ -98,7 +98,6 @@ p.descriptiontext {
 @-webkit-keyframes spinnerRotate {
     from {
         -webkit-transform: rotate(0deg);
-����}
     to {
         -webkit-transform: rotate(360deg);
     }
@@ -107,7 +106,6 @@ p.descriptiontext {
 @-moz-keyframes spinnerRotate {
     from {
         -webkit-transform: rotate(0deg);
-����}
     to {
         -webkit-transform: rotate(360deg);
     }
