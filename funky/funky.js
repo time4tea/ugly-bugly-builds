@@ -162,7 +162,7 @@ $(function () {
             return a.buildnumber - b.buildnumber;
         });
 
-        if ( this.builds.length == 10 ) {
+        if ( this.builds.length == this.build_count ) {
             this.renderGraph();
         }
     };
@@ -216,6 +216,8 @@ $(function () {
         this.buildable = data.buildable;
 
         var builds = data.builds.splice(0, 10);
+
+        this.build_count = builds.length;
 
         $.each(builds, function (i, b) {
             hudsonapi(b.url,
