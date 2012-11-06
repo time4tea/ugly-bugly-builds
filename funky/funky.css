@@ -1,0 +1,133 @@
+body {
+    font-size: 12px;
+    background: white;
+    color: black;
+    font-family: sans-serif;
+    padding: 8px;
+    margin: 0;
+}
+
+body.failed {
+    background-color: #ffdcdf;
+}
+
+#summary {
+    text-align: right;
+}
+
+h1 {
+    font-size: 72px;
+    font-weight: bold;
+    margin-bottom: 20px;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 0;
+    padding: 0;
+    border: 0;
+}
+
+tr {
+    margin: 0;
+    padding: 0;
+    border: 0;
+}
+
+td {
+    margin: 0;
+    padding: 0;
+    bottom: 0;
+}
+
+img {
+    display: block;
+}
+
+.graph {
+    display: inline-block;
+    position:relative;
+    padding: 8px;
+    margin: 4px;
+    height: 150px;
+    width: 490px;
+    overflow: hidden;
+}
+
+.graph .y_grid path, .graph .x_grid path {
+    fill: none;
+    stroke: none;
+}
+
+.graph .y_ticks path, .graph .x_ticks path {
+    fill: none;
+    stroke: #808080;
+}
+
+.graph .y_ticks text, .graph .x_ticks text {
+    opacity: 0.5;
+    font-size: 12px;
+    pointer-events: none;
+}
+
+.descriptiontext.failed {
+    color: #8b0000;
+}
+
+.descriptiontext.passed {
+    color: #000000;
+}
+
+.graph.disabled, .graph.never-run {
+    background-color: #808080;
+    opacity: 0.5;
+}
+
+div.description{
+    position:absolute; /* absolute position (so we can position it where we want)*/
+    bottom:30%; /* position will be on bottom */
+    left:10%;
+    width:100%;
+    font-size:40px;
+    color:gray;
+    opacity:0.6; /* transparency */
+}
+p.descriptiontext{
+    padding:10px;
+    margin:0;
+    font-family: 'Ubuntu', sans-serif;
+}
+
+.spinner {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    height: 50px;
+    width: 50px;
+    background-image: url(../shared/spinner.png);
+    -webkit-animation: spinnerRotate 2s linear infinite;
+    -moz-animation: spinnerRotate 2s linear infinite;
+}
+
+@-webkit-keyframes spinnerRotate {
+    from {
+        -webkit-transform: rotate(0deg);
+����}
+    to {
+        -webkit-transform: rotate(360deg);
+    }
+}
+
+@-moz-keyframes spinnerRotate {
+    from {
+        -webkit-transform: rotate(0deg);
+����}
+    to {
+        -webkit-transform: rotate(360deg);
+    }
+}
+
+.waiting .spinner {
+    display: none;
+}
