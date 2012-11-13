@@ -67,14 +67,14 @@ $(function () {
         });
     }
 
-    var hudson = getQuery("hudson");
+    var ci = getQuery("ci");
     var view = getQuery("view");
 
-    if ( ! view || ! hudson ) {
-        alert("use ?hudson=<uri of hudson>&view=<view name>");
+    if ( ! view || ! ci ) {
+        alert("use ?ci=<uri of hudson/jenkins>&view=<view name>");
     }
     else {
         $("#view").text(view);
-        loadGraphs(hudson, view);
+        loadGraphs(ci, view);
     }
 });

@@ -257,14 +257,14 @@ $(function () {
         hudsonapi(hudson + "/view/" + view, loadJobs, xhrerror);
     }
 
-    var hudson = getQuery("hudson");
+    var ci = getQuery("ci");
     var view = getQuery("view");
 
-    if ( ! view || ! hudson ) {
-        alert("use ?hudson=<uri of hudson>&view=<view name>");
+    if ( ! view || ! ci ) {
+        alert("use ?ci=<uri of jenkins>&view=<view name>");
     }
     else {
         $("#view").text(view);
-        loadJobsInView(hudson, view);
+        loadJobsInView(ci, view);
     }
 });
