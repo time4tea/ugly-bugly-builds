@@ -7,14 +7,16 @@
     <link href='http://fonts.googleapis.com/css?family=Ubuntu' rel='stylesheet' type='text/css'>
     <script id="testgraph" type="text/html">
         {{#graphs}}
-        <div class="graph {{status}} {{running}}">
-            <img src="{{graphurl}}"/>
+        <a href="{{job_url}}">
+            <div class="graph {{status}} {{running}}">
+                <img src="{{graphurl}}"/>
 
-            <div class="description">
-                <p class="descriptiontext">{{name}}</p>
+                <div class="description">
+                    <p class="descriptiontext">{{name}}</p>
+                </div>
+                <div class="spinner"></div>
             </div>
-            <div class="spinner"></div>
-        </div>
+        </a>
         {{/graphs}}
     </script>
 </head>
