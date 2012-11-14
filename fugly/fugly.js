@@ -25,7 +25,7 @@ $(function () {
         return $.map(jobs, function (job, index) {
             return {
                 name:job.name,
-                job_url:job.url,
+                joburl:job.url,
                 graphurl:job.url + "/test/trend?width=450&height=180",
                 status:colorToStatus[job.color],
                 running:job.color.indexOf("anime") != -1 ? "running" : "waiting"

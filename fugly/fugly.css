@@ -53,6 +53,7 @@ img {
     width: 450px;
     height: 180px;
     border: 1px solid white;
+    overflow: hidden;
 }
 
 .graph.failed {
@@ -63,6 +64,11 @@ img {
     background-color: green;
 }
 
+.graph{
+    border: 0;
+    margin: 0;
+}
+
 .graph.disabled, .graph.never-run {
     display: none;
     background-color: #808080;
@@ -71,7 +77,7 @@ img {
 
 div.description {
     position: absolute; /* absolute position (so we can position it where we want)*/
-    bottom: 50%; /* position will be on bottom */
+    bottom: 40%; /* position will be on bottom */
     left: 15%;
     width: 100%;
     font-size: 40px;
