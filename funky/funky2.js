@@ -81,10 +81,12 @@ $(function () {
     }
 
     Job.prototype.highestBuildNumber = function() {
-        if ( this.builds.length == 0 ) {
+        var count = this.builds.length;
+
+        if ( count == 0 ) {
             return -1;
         }
-        return this.builds[-1].number();
+        return this.builds[count - 1].number();
     };
 
     Job.prototype.refreshResult = function(data) {
@@ -100,7 +102,6 @@ $(function () {
         }
 
         if ( this.highestBuildNumber() < lastCompleted.number ) {
-
             var builds = data.builds.splice(0,11);
 
             $.each(builds, function(i,b) {
@@ -128,7 +129,7 @@ $(function () {
 
     function View(uri, listener) {
         this.uri = uri;
-        this.jobs = [];
+        this.jobs = {};
         this.listener = listener;
     }
 
@@ -140,7 +141,7 @@ $(function () {
 
         setTimeout(function() {
             view.bootstrap();
-        }, 60000);
+        }, 5000);
     };
 
     function isMatrixBuild(j) {
@@ -171,23 +172,15 @@ $(function () {
         }
         else {
             var name = j.name;
-            if ( ! this.jobs[name] ) {
-                if ( !isDisabled(j) ) {
-                    var job = new Job(name, j.url, this.listener);
-                    this.jobAdded(job);
-                    job.refresh();
-                }
+            if (this.jobs[name]) {
+                this.jobs[name].refresh();
+            } else if (!isDisabled(j)) {
+                var job = new Job(name, j.url, this.listener);
+                this.jobs[name] = job;
+                this.listener.found_new_job(job);
+                job.refresh();
             }
         }
-    };
-
-    View.prototype.jobAdded = function(job) {
-        this.jobs.push(job);
-        this.jobs.sort(function(a,b){
-            var an = a.jobname(), bn = b.jobname();
-            return an > bn ? 1 : an < bn ? -1 : 0;
-        });
-        this.listener.found_new_job(job);
     };
 
     function JobPanel(job) {
@@ -263,6 +256,7 @@ $(function () {
     }
 
     JobRender.prototype.found_new_job = function(job) {
+        console.log("********* New job " + job.name);
         this.panels[job.name] = new JobPanel(job);
     };
 
