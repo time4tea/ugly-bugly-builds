@@ -185,28 +185,34 @@ $(function () {
 
     function JobPanel(job) {
         this.div = ich.testgraph({ name:job.name });
+        this.plotted = -1;
         $("#graphs").append(this.div);
     }
 
     JobPanel.prototype.job_updated = function(job) {
-        console.log(job.name + " updated " );
-        console.log(this);
-
         var div = this.div;
 
-        if ( job.builds.length == 10 ) {
+        var most_recent_build = job.highestBuildNumber();
 
-            div.removeClass();
-            div.addClass("graph");
+        if ( most_recent_build > this.plotted ) {
+            if (job.builds.length == 10) {
 
-            if (job.is_runnning) {
-                div.addClass("running");
+                console.log("Redrawing " + job.name + " for build " + most_recent_build );
+
+                div.removeClass();
+                div.addClass("graph");
+
+                if (job.is_runnning) {
+                    div.addClass("running");
+                }
+                else {
+                    div.addClass("waiting");
+                }
+
+                this.render_graph(job);
+
+                this.plotted = most_recent_build;
             }
-            else {
-                div.addClass("waiting");
-            }
-
-            this.render_graph(job);
         }
     };
 
