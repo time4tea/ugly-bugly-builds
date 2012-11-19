@@ -250,7 +250,6 @@ $(function () {
             $("body").addClass("failed");
             $("#summary").text("-- " + failing.length + " failing");
         }
-
     }
 
     function loadJobsInView(hudson, view) {

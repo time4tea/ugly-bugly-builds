@@ -43,7 +43,7 @@ $(function () {
     };
 
     Build.prototype.tests = function() {
-        var actions = data.actions;
+        var actions = this.data.actions;
 
         for ( var i=  0; i < actions.length; i++ ) {
             if ( "testReport" == actions[i].urlName) {
@@ -58,12 +58,11 @@ $(function () {
         }
     };
 
-    function Job(name, uri) {
+    function Job(name, uri, listener) {
         this.name = name;
         this.uri = uri;
         this.builds = [];
-
-        console.log(name);
+        this.listener = listener;
     }
 
     Job.prototype.jobname = function() {
@@ -91,7 +90,8 @@ $(function () {
     Job.prototype.refreshResult = function(data) {
         var job = this;
 
-        this.isbuilding = jobIsRunning(data);
+        this.is_running = jobIsRunning(data);
+
         var lastCompleted = data.lastCompletedBuild;
 
         if ( ! lastCompleted ) {
@@ -109,6 +109,8 @@ $(function () {
                 }
             })
         }
+
+        job.listener.job_updated(this);
     };
 
     Job.prototype.updateBuildResult = function(data) {
@@ -116,16 +118,16 @@ $(function () {
         this.builds.sort(function (a, b) {
             return a.number() - b.number();
         });
-        this.buildsUpdated();
+        if ( this.builds.length > 10 ) {
+            this.builds = this.builds.splice(-10);
+        }
+        this.listener.job_updated(this);
     };
 
-    Job.prototype.buildsUpdated = function() {
-        console.log(this);
-    };
-
-    function View(uri) {
+    function View(uri, listener) {
         this.uri = uri;
         this.jobs = [];
+        this.listener = listener;
     }
 
     View.prototype.bootstrap = function() {
@@ -169,7 +171,7 @@ $(function () {
             var name = j.name;
             if ( ! this.jobs[name] ) {
                 if ( !isDisabled(j) ) {
-                    var job = new Job(name, j.url);
+                    var job = new Job(name, j.url, this.listener);
                     this.jobAdded(job);
                     job.refresh();
                 }
@@ -182,7 +184,88 @@ $(function () {
         this.jobs.sort(function(a,b){
             var an = a.jobname(), bn = b.jobname();
             return an > bn ? 1 : an < bn ? -1 : 0;
-        })
+        });
+        this.listener.found_new_job(job);
+    };
+
+    function JobPanel(job) {
+        this.div = ich.testgraph({ name:job.name });
+        $("#graphs").append(this.div);
+    }
+
+    JobPanel.prototype.job_updated = function(job) {
+        console.log(job.name + " updated " );
+        console.log(this);
+
+        var div = this.div;
+
+        if ( job.builds.length == 10 ) {
+
+            div.removeClass();
+            div.addClass("graph");
+
+            if (job.is_runnning) {
+                div.addClass("running");
+            }
+            else {
+                div.addClass("waiting");
+            }
+
+            this.render_graph(job);
+        }
+    };
+
+    JobPanel.prototype.render_graph = function(job) {
+        var skipped = $.map(job.builds, function(e,i) {
+            return { x:e.number(), y:e.tests().skipCount };
+        });
+
+        var pass = $.map(job.builds, function(e,i) {
+            return { x:e.number(), y:e.tests().totalCount - ( e.tests().failCount + e.tests().skipCount ) };
+        });
+
+        var fail = $.map(job.builds, function(e,i) {
+            return { x :e.number(), y:e.tests().failCount};
+        });
+
+        $(this.div).children("svg").remove();
+
+        var graph = new Rickshaw.Graph({
+            element: this.div[0],
+            renderer:'area',
+            stroke:true,
+            series:[
+                { data:pass, color:'lightgreen' },
+                { data:fail, color:'pink' }
+            ]
+        });
+
+        graph.render();
+
+        var yAxis = new Rickshaw.Graph.Axis.Y( {
+            graph: graph,
+            tickFormat: Rickshaw.Fixtures.Number.formatKMBT
+        } );
+
+        yAxis.render();
+
+        var xAxis = new Rickshaw.Graph.Axis.X( {
+            graph: graph
+        } );
+
+        xAxis.render();
+    };
+
+    function JobRender() {
+        this.panels = {};
+    }
+
+    JobRender.prototype.found_new_job = function(job) {
+        this.panels[job.name] = new JobPanel(job);
+    };
+
+    JobRender.prototype.job_updated = function(job) {
+        this.panels[job.name].job_updated(job);
     };
 
     var uri = getQuery("view");
@@ -191,7 +274,9 @@ $(function () {
         alert("use ?view=<view uri>");
     }
     else {
-        var v = new View(uri);
+        var render = new JobRender();
+
+        var v = new View(uri, render);
         v.bootstrap();
     }
 });
