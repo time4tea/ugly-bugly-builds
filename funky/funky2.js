@@ -52,7 +52,7 @@ $(function () {
         }
         // can't find any tests, just say there was one test, and it failed if the build failed.
         return {
-            failCount: this.success() ? 1 : 0,
+            failCount: this.success() ? 0 : 1,
             skipCount : 0,
             totalCount : 1
         }
@@ -100,14 +100,16 @@ $(function () {
         }
 
         if ( this.highestBuildNumber() < lastCompleted.number ) {
-            var builds = data.builds.splice(0,10);
+
+            var builds = data.builds.splice(0,11);
+
             $.each(builds, function(i,b) {
-                if (b.number > job.highestBuildNumber() ) {
+                if (b.number > job.highestBuildNumber() && b.number <= lastCompleted.number) {
                     hudsonapi(b.url, function(data) {
                         job.updateBuildResult(data);
-                    })
+                    });
                 }
-            })
+            });
         }
 
         job.listener.job_updated(this);
@@ -138,7 +140,7 @@ $(function () {
 
         setTimeout(function() {
             view.bootstrap();
-        }, 60000)
+        }, 60000);
     };
 
     function isMatrixBuild(j) {
