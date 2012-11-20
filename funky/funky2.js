@@ -292,7 +292,7 @@ $(function () {
         var count = this.count;
 
         var height = this.container.height() - 50;
-        var width = this.container.width() - 50;
+        var width = this.container.width() - 80;
 
         var hd, vd;
 
@@ -300,8 +300,8 @@ $(function () {
             hd = 1; vd = count;
         }
         else {
-            hd = (Math.sqrt(count) | 0) + 1;
-            vd = hd;
+            hd = Math.ceil(Math.sqrt(count));
+            vd = Math.floor( count / hd );
         }
 
         var panel_height = height / vd;
