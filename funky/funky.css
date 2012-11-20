@@ -45,11 +45,6 @@ img {
     display: block;
 }
 
-#graphs {
-    height: 100%;
-    width: 100%;
-}
-
 .graph {
     display: inline-block;
     position:relative;

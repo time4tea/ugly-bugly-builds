@@ -281,6 +281,14 @@ $(function () {
 
     JobRender.prototype.resize_panels = function() {
 
+        var vpw = $(window).width();
+        var vph = $(window).height();
+
+        this.container.width(vpw - 30);
+        this.container.height(vph - ( this.container.offset().top + 30 ) );
+
+        // Element Height = Viewport height - element.offset.top - desired bottom margin
+
         var count = this.count;
 
         var height = this.container.height() - 50;
