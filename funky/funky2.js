@@ -62,6 +62,7 @@ $(function () {
         this.name = name;
         this.uri = uri;
         this.builds = [];
+        this.is_running = false;
         this.listener = listener;
     }
 
@@ -92,7 +93,7 @@ $(function () {
     Job.prototype.refreshResult = function(data) {
         var job = this;
 
-        this.is_running = jobIsRunning(data);
+        job.is_running = jobIsRunning(data);
 
         var lastCompleted = data.lastCompletedBuild;
 
@@ -102,7 +103,9 @@ $(function () {
         }
 
         if ( this.highestBuildNumber() < lastCompleted.number ) {
-            var builds = data.builds.splice(0,11);
+            var builds = data.builds.slice(0,11);
+
+            this.builds_available = builds.length;
 
             $.each(builds, function(i,b) {
                 if (b.number > job.highestBuildNumber() && b.number <= lastCompleted.number) {
@@ -141,7 +144,7 @@ $(function () {
 
         setTimeout(function() {
             view.bootstrap();
-        }, 5000);
+        }, 30000);
     };
 
     function isMatrixBuild(j) {
@@ -195,7 +198,7 @@ $(function () {
         var most_recent_build = job.highestBuildNumber();
 
         if ( most_recent_build > this.plotted ) {
-            if (job.builds.length == 10) {
+            if (job.builds.length == job.builds_available ) {
 
                 console.log("Redrawing " + job.name + " for build " + most_recent_build );
 
