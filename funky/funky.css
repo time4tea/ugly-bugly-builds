@@ -45,13 +45,16 @@ img {
     display: block;
 }
 
+#graphs {
+    height: 100%;
+    width: 100%;
+}
+
 .graph {
     display: inline-block;
     position:relative;
     padding: 8px;
     margin: 4px;
-    height: 150px;
-    width: 490px;
     overflow: hidden;
 }
 
@@ -117,7 +120,7 @@ p.descriptiontext{
 @-webkit-keyframes spinnerRotate {
     from {
         -webkit-transform: rotate(0deg);
-����}
+    }
     to {
         -webkit-transform: rotate(360deg);
     }
@@ -126,7 +129,7 @@ p.descriptiontext{
 @-moz-keyframes spinnerRotate {
     from {
         -webkit-transform: rotate(0deg);
-����}
+    }
     to {
         -webkit-transform: rotate(360deg);
     }

@@ -64,6 +64,8 @@ $(function () {
         this.builds = [];
         this.is_running = false;
         this.listener = listener;
+        this.build_history = 5;
+        this.builds_available = -1;
     }
 
     Job.prototype.jobname = function() {
@@ -103,7 +105,7 @@ $(function () {
         }
 
         if ( this.highestBuildNumber() < lastCompleted.number ) {
-            var builds = data.builds.slice(0,10);
+            var builds = data.builds.slice(0,this.build_history);
 
             this.builds_available = builds.length;
 
@@ -124,8 +126,8 @@ $(function () {
         this.builds.sort(function (a, b) {
             return a.number() - b.number();
         });
-        if ( this.builds.length > 10 ) {
-            this.builds = this.builds.splice(-10);
+        if ( this.builds.length > this.build_history ) {
+            this.builds = this.builds.splice(- this.build_history);
         }
         this.listener.job_updated(this);
     };
@@ -189,7 +191,6 @@ $(function () {
     function JobPanel(job) {
         this.div = ich.testgraph({ name:job.name });
         this.plotted = -1;
-        $("#graphs").append(this.div);
     }
 
     JobPanel.prototype.job_updated = function(job) {
@@ -260,14 +261,50 @@ $(function () {
         xAxis.render();
     };
 
-    function JobRender() {
+    function JobRender(container) {
         this.panels = {};
+        this.container = container;
+        this.count = 0;
     }
 
     JobRender.prototype.found_new_job = function(job) {
         console.log("********* New job " + job.name);
-        this.panels[job.name] = new JobPanel(job);
+        var panel = new JobPanel(job);
+
+        this.panels[job.name] = panel;
+        this.container.append(panel.div);
+
+        this.count++;
+
+        this.resize_panels();
     };
+
+    JobRender.prototype.resize_panels = function() {
+
+        var count = this.count;
+
+        var height = this.container.height() - 50;
+        var width = this.container.width() - 50;
+
+        var hd, vd;
+
+        if ( count <= 3 ) {
+            hd = 1; vd = count;
+        }
+        else {
+            hd = (Math.sqrt(count) | 0) + 1;
+            vd = hd;
+        }
+
+        var panel_height = height / vd;
+        var panel_width = width / hd;
+
+        this.container.children(".graph").width(panel_width).height(panel_height);
+
+        console.log("Count is " + count + " Available height, width " + height + " , " + width);
+
+    };
+
 
     JobRender.prototype.job_updated = function(job) {
         this.panels[job.name].job_updated(job);
@@ -279,7 +316,7 @@ $(function () {
         alert("use ?view=<view uri>");
     }
     else {
-        var render = new JobRender();
+        var render = new JobRender($("#graphs"));
 
         var v = new View(uri, render);
         v.bootstrap();
