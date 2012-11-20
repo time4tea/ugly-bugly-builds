@@ -103,7 +103,7 @@ $(function () {
         }
 
         if ( this.highestBuildNumber() < lastCompleted.number ) {
-            var builds = data.builds.slice(0,11);
+            var builds = data.builds.slice(0,10);
 
             this.builds_available = builds.length;
 
