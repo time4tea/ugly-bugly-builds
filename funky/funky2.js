@@ -31,30 +31,30 @@ $(function () {
     }
 
     function Build(data) {
-      this.data = data;
+        this.data = data;
     }
 
-    Build.prototype.number = function() {
+    Build.prototype.number = function () {
         return this.data.number;
     };
 
-    Build.prototype.success = function() {
+    Build.prototype.success = function () {
         return this.data.result == "SUCCESS";
     };
 
-    Build.prototype.tests = function() {
+    Build.prototype.tests = function () {
         var actions = this.data.actions;
 
-        for ( var i=  0; i < actions.length; i++ ) {
-            if ( "testReport" == actions[i].urlName) {
+        for (var i = 0; i < actions.length; i++) {
+            if ("testReport" == actions[i].urlName) {
                 return actions[i];
             }
         }
         // can't find any tests, just say there was one test, and it failed if the build failed.
         return {
-            failCount: this.success() ? 0 : 1,
-            skipCount : 0,
-            totalCount : 1
+            failCount:this.success() ? 0 : 1,
+            skipCount:0,
+            totalCount:1
         }
     };
 
@@ -68,13 +68,13 @@ $(function () {
         this.builds_available = -1;
     }
 
-    Job.prototype.jobname = function() {
+    Job.prototype.jobname = function () {
         return this.name;
     };
 
-    Job.prototype.refresh = function() {
+    Job.prototype.refresh = function () {
         var job = this;
-        hudsonapi(this.uri, function(data) {
+        hudsonapi(this.uri, function (data) {
             job.refreshResult(data);
         })
     };
@@ -83,35 +83,35 @@ $(function () {
         return j.color.indexOf("anime") != -1;
     }
 
-    Job.prototype.highestBuildNumber = function() {
+    Job.prototype.highestBuildNumber = function () {
         var count = this.builds.length;
 
-        if ( count == 0 ) {
+        if (count == 0) {
             return -1;
         }
         return this.builds[count - 1].number();
     };
 
-    Job.prototype.refreshResult = function(data) {
+    Job.prototype.refreshResult = function (data) {
         var job = this;
 
         job.is_running = jobIsRunning(data);
 
         var lastCompleted = data.lastCompletedBuild;
 
-        if ( ! lastCompleted ) {
+        if (!lastCompleted) {
             // no completed builds forget it.
             return;
         }
 
-        if ( this.highestBuildNumber() < lastCompleted.number ) {
-            var builds = data.builds.slice(0,this.build_history);
+        if (this.highestBuildNumber() < lastCompleted.number) {
+            var builds = data.builds.slice(0, this.build_history);
 
             this.builds_available = builds.length;
 
-            $.each(builds, function(i,b) {
+            $.each(builds, function (i, b) {
                 if (b.number > job.highestBuildNumber() && b.number <= lastCompleted.number) {
-                    hudsonapi(b.url, function(data) {
+                    hudsonapi(b.url, function (data) {
                         job.updateBuildResult(data);
                     });
                 }
@@ -121,13 +121,13 @@ $(function () {
         job.listener.job_updated(this);
     };
 
-    Job.prototype.updateBuildResult = function(data) {
+    Job.prototype.updateBuildResult = function (data) {
         this.builds.push(new Build(data));
         this.builds.sort(function (a, b) {
             return a.number() - b.number();
         });
-        if ( this.builds.length > this.build_history ) {
-            this.builds = this.builds.splice(- this.build_history);
+        if (this.builds.length > this.build_history) {
+            this.builds = this.builds.splice(-this.build_history);
         }
         this.listener.job_updated(this);
     };
@@ -138,13 +138,13 @@ $(function () {
         this.listener = listener;
     }
 
-    View.prototype.bootstrap = function() {
+    View.prototype.bootstrap = function () {
         var view = this;
-        hudsonapi(this.uri, function(data) {
+        hudsonapi(this.uri, function (data) {
             view.refreshViewContents(data);
-        },xhrerror);
+        }, xhrerror);
 
-        setTimeout(function() {
+        setTimeout(function () {
             view.bootstrap();
         }, 30000);
     };
@@ -157,23 +157,23 @@ $(function () {
         return j.color.indexOf("disabled") != -1;
     }
 
-    View.prototype.refreshViewContents = function(data) {
+    View.prototype.refreshViewContents = function (data) {
         var view = this;
-        $.each(data.jobs, function(i,j) {
-            hudsonapi(j.url, function(data) {
+        $.each(data.jobs, function (i, j) {
+            hudsonapi(j.url, function (data) {
                 view.refreshJob(data);
             })
         });
     };
 
-    View.prototype.refreshJob = function(j) {
+    View.prototype.refreshJob = function (j) {
         var view = this;
-        if ( isMatrixBuild(j)) {
-            $.each(j.activeConfigurations, function(i,m) {
-                hudsonapi(m.url, function(data) {
+        if (isMatrixBuild(j)) {
+            $.each(j.activeConfigurations, function (i, m) {
+                hudsonapi(m.url, function (data) {
                     view.refreshJob(data);
                 })
-            } );
+            });
         }
         else {
             var name = j.name;
@@ -190,21 +190,22 @@ $(function () {
 
     function JobPanel(job) {
         this.div = ich.testgraph({ name:job.name });
+        this.graph_div = this.div.children(".graph")[0];
         this.plotted = -1;
     }
 
-    JobPanel.prototype.job_updated = function(job) {
+    JobPanel.prototype.job_updated = function (job) {
         var div = this.div;
 
         var most_recent_build = job.highestBuildNumber();
 
-        if ( most_recent_build > this.plotted ) {
-            if (job.builds.length == job.builds_available ) {
+        if (most_recent_build > this.plotted) {
+            if (job.builds.length == job.builds_available) {
 
-                console.log("Redrawing " + job.name + " for build " + most_recent_build );
+                console.log("Redrawing " + job.name + " for build " + most_recent_build);
 
                 div.removeClass();
-                div.addClass("graph");
+                div.addClass("job");
 
                 if (job.is_runnning) {
                     div.addClass("running");
@@ -220,23 +221,25 @@ $(function () {
         }
     };
 
-    JobPanel.prototype.render_graph = function(job) {
-        var skipped = $.map(job.builds, function(e,i) {
+    JobPanel.prototype.render_graph = function (job) {
+        var skipped = $.map(job.builds, function (e, i) {
             return { x:e.number(), y:e.tests().skipCount };
         });
 
-        var pass = $.map(job.builds, function(e,i) {
+        var pass = $.map(job.builds, function (e, i) {
             return { x:e.number(), y:e.tests().totalCount - ( e.tests().failCount + e.tests().skipCount ) };
         });
 
-        var fail = $.map(job.builds, function(e,i) {
-            return { x :e.number(), y:e.tests().failCount};
+        var fail = $.map(job.builds, function (e, i) {
+            return { x:e.number(), y:e.tests().failCount};
         });
 
-        $(this.div).children("svg").remove();
+        $(this.graph_div).children("svg").remove();
 
         var graph = new Rickshaw.Graph({
-            element: this.div[0],
+            element:this.graph_div,
+            width: $(this.graph_div).width(),
+            height: $(this.graph_div).height(),
             renderer:'area',
             stroke:true,
             series:[
@@ -247,16 +250,16 @@ $(function () {
 
         graph.render();
 
-        var yAxis = new Rickshaw.Graph.Axis.Y( {
-            graph: graph,
-            tickFormat: Rickshaw.Fixtures.Number.formatKMBT
-        } );
+        var yAxis = new Rickshaw.Graph.Axis.Y({
+            graph:graph,
+            tickFormat:Rickshaw.Fixtures.Number.formatKMBT
+        });
 
         yAxis.render();
 
-        var xAxis = new Rickshaw.Graph.Axis.X( {
-            graph: graph
-        } );
+        var xAxis = new Rickshaw.Graph.Axis.X({
+            graph:graph
+        });
 
         xAxis.render();
     };
@@ -267,7 +270,7 @@ $(function () {
         this.count = 0;
     }
 
-    JobRender.prototype.found_new_job = function(job) {
+    JobRender.prototype.found_new_job = function (job) {
         console.log("********* New job " + job.name);
         var panel = new JobPanel(job);
 
@@ -279,7 +282,51 @@ $(function () {
         this.resize_panels();
     };
 
-    JobRender.prototype.resize_panels = function() {
+    function fit_rects_into_area(nrects, ratio, height, width) {
+
+        var best_area = -1;
+        var best_alternatives = [
+            { width:width, height:height }
+        ];
+
+        /*
+         (1..nrect).each do |nhigh|
+         nwide = ((nrect + nhigh - 1) / nhigh).truncate
+         maxh, maxw = (screenh / nhigh).truncate, (screenw / nwide).truncate
+         relh, relw = (maxw * ratio).truncate, (maxh / ratio).truncate
+         acth, actw = min(maxh, relh), min(maxw, relw)
+         area = acth * actw
+         puts ([nhigh, nwide, maxh, maxw, relh, relw, acth, actw, area].join("\t"))
+         end
+         */
+
+        for (var nhigh = 1; nhigh < nrects; nhigh++) {
+            var nwide = Math.floor((nrects + nhigh - 1) / nhigh);
+            var maxh = Math.floor(height / nhigh);
+            var maxw = Math.floor(width / nwide);
+            var relh = Math.floor(maxw * ratio);
+            var relw = Math.floor(maxh / ratio);
+            var acth = Math.min(maxh, relh);
+            var actw = Math.min(maxw, relw);
+            var area = acth * actw;
+
+            console.log("high " + nhigh + ", wide " + nwide + ", acth " + acth + ", actw " + actw + ", area " + area);
+
+            if (area > best_area) {
+                best_alternatives = [
+                    { width:actw, height:acth }
+                ];
+                best_area = area;
+            }
+            else if (area == best_area) {
+                best_alternatives.push({ width:actw, height:acth });
+            }
+        }
+
+        return best_alternatives[0];
+    }
+
+    JobRender.prototype.resize_panels = function () {
 
         var vpw = $(window).width();
         var vph = $(window).height();
@@ -291,40 +338,32 @@ $(function () {
 
         var count = this.count;
 
-        var height = this.container.height() - 50;
-        var width = this.container.width() - 80;
+        var height = this.container.height() ;
+        var width = this.container.width();
 
-        var hd, vd;
+        var ratio = 3.0 / 5.0;
 
-        if ( count <= 3 ) {
-            hd = 1; vd = count;
-        }
-        else {
-            hd = Math.ceil(Math.sqrt(count));
-            vd = Math.floor( count / hd );
-        }
+        var rect_size = fit_rects_into_area(count, ratio, height, width);
 
-        var panel_height = height / vd;
-        var panel_width = width / hd;
-
-        this.container.children(".graph").width(panel_width).height(panel_height);
+        this.container.children(".job")
+            .width(rect_size["width"])
+            .height(rect_size["height"]);
 
         console.log("Count is " + count + " Available height, width " + height + " , " + width);
-
     };
 
 
-    JobRender.prototype.job_updated = function(job) {
+    JobRender.prototype.job_updated = function (job) {
         this.panels[job.name].job_updated(job);
     };
 
     var uri = getQuery("view");
 
-    if ( ! uri ) {
+    if (!uri) {
         alert("use ?view=<view uri>");
     }
     else {
-        var render = new JobRender($("#graphs"));
+        var render = new JobRender($("#builds"));
 
         var v = new View(uri, render);
         v.bootstrap();
