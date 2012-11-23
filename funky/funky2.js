@@ -214,6 +214,13 @@ $(function () {
                     div.addClass("waiting");
                 }
 
+                if ( job.builds[job.builds.length - 1].success() ) {
+                    div.addClass("passed");
+                }
+                else {
+                    div.addClass("failed");
+                }
+
                 this.render_graph(job);
 
                 this.plotted = most_recent_build;
@@ -331,17 +338,12 @@ $(function () {
         var vpw = $(window).width();
         var vph = $(window).height();
 
-        this.container.width(vpw );
-        this.container.height(vph - ( this.container.offset().top + 30 ) );
-
-        // Element Height = Viewport height - element.offset.top - desired bottom margin
-
         var count = this.count;
 
-        var height = this.container.height() ;
-        var width = this.container.width();
+        var width = vpw - 30;
+        var height = vph - ( this.container.offset().top + 30) ;
 
-        var ratio = 3.0 / 5.0;
+        var ratio = 1 / 1.618;
 
         var rect_size = fit_rects_into_area(count, ratio, height, width);
 
