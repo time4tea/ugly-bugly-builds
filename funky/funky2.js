@@ -234,12 +234,12 @@ $(function () {
             return { x:e.number(), y:e.tests().failCount};
         });
 
-        $(this.graph_div).children("svg").remove();
+        var div = $(this.graph_div);
+
+        div.children("svg").remove();
 
         var graph = new Rickshaw.Graph({
             element:this.graph_div,
-            width: $(this.graph_div).width(),
-            height: $(this.graph_div).height(),
             renderer:'area',
             stroke:true,
             series:[
@@ -331,7 +331,7 @@ $(function () {
         var vpw = $(window).width();
         var vph = $(window).height();
 
-        this.container.width(vpw - 30);
+        this.container.width(vpw );
         this.container.height(vph - ( this.container.offset().top + 30 ) );
 
         // Element Height = Viewport height - element.offset.top - desired bottom margin
@@ -345,9 +345,25 @@ $(function () {
 
         var rect_size = fit_rects_into_area(count, ratio, height, width);
 
-        this.container.children(".job")
-            .width(rect_size["width"])
-            .height(rect_size["height"]);
+        var jobs = this.container.children(".job");
+        var job_width = rect_size["width"];
+        var job_height = rect_size["height"];
+
+        jobs.width(job_width).height(job_height);
+
+        jobs.children(".graph").each(function(index, div) {
+            var element = $(div);
+
+            var padding = element.padding();
+            var margin = element.margin();
+            var border = element.border();
+
+            var width = job_width - ( (padding["left"] + padding["right"])  + (margin["left"] + margin["right"]) + ( border["left"] + border["right"]));
+            var height = job_height - ( (padding["top"] + padding["bottom"])  + (margin["top"] + margin["bottom"] ) + ( border["top"] + border["bottom"]));
+
+            element.height(height);
+            element.width(width);
+        });
 
         console.log("Count is " + count + " Available height, width " + height + " , " + width);
     };
