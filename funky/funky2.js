@@ -296,17 +296,6 @@ $(function () {
             { width:width, height:height }
         ];
 
-        /*
-         (1..nrect).each do |nhigh|
-         nwide = ((nrect + nhigh - 1) / nhigh).truncate
-         maxh, maxw = (screenh / nhigh).truncate, (screenw / nwide).truncate
-         relh, relw = (maxw * ratio).truncate, (maxh / ratio).truncate
-         acth, actw = min(maxh, relh), min(maxw, relw)
-         area = acth * actw
-         puts ([nhigh, nwide, maxh, maxw, relh, relw, acth, actw, area].join("\t"))
-         end
-         */
-
         for (var nhigh = 1; nhigh < nrects; nhigh++) {
             var nwide = Math.floor((nrects + nhigh - 1) / nhigh);
             var maxh = Math.floor(height / nhigh);
@@ -319,14 +308,14 @@ $(function () {
 
             console.log("high " + nhigh + ", wide " + nwide + ", acth " + acth + ", actw " + actw + ", area " + area);
 
+            var current = { width:actw, height:acth };
+
             if (area > best_area) {
-                best_alternatives = [
-                    { width:actw, height:acth }
-                ];
+                best_alternatives = [ current ];
                 best_area = area;
             }
             else if (area == best_area) {
-                best_alternatives.push({ width:actw, height:acth });
+                best_alternatives.push(current);
             }
         }
 

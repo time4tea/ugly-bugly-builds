@@ -82,7 +82,7 @@ img {
 }
 
 .passed .graph {
-    background-color: #468847;
+    /*background-color: #468847;*/
 }
 
 .graph.disabled, .graph.never-run {
