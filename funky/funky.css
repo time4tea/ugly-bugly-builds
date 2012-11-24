@@ -1,7 +1,8 @@
 body {
     font-size: 12px;
-    background: white;
-    color: black;
+    background: -webkit-linear-gradient(45deg, #020031 0%,#6D3353 100%);
+
+    color: white;
     font-family: sans-serif;
     padding: 8px;
     margin: 0;
@@ -51,6 +52,9 @@ img {
     margin: 0;
 }
 
+#container {
+}
+
 .graph {
     position:relative;
     float: left;
@@ -78,12 +82,12 @@ img {
 }
 
 .failed  .graph {
-    background-color: #B94A48;
+    background: -webkit-linear-gradient(top, #EE5F5B, #BD362F);
 }
 
 .passed .graph {
-    /*background-color: #468847;*/
-    opacity: 0.75;
+    background: -webkit-gradient(linear, 0 0, 0 100%, from(#62C462), to(#51A351));
+    /*opacity: 0.75;*/
 }
 
 .graph.disabled, .graph.never-run {
@@ -104,9 +108,14 @@ div.description{
     color:gray;
     opacity:0.6; /* transparency */
 }
+
 p.descriptiontext{
     padding:10px;
     margin:0;
+    font-family: 'Ubuntu', sans-serif;
+}
+
+.title {
     font-family: 'Ubuntu', sans-serif;
 }
 

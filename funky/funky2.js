@@ -92,9 +92,12 @@ $(function () {
         return this.builds[count - 1].number();
     };
 
+    Job.prototype.has_builds = function() {
+        return this.builds.length > 0;
+    };
+
     Job.prototype.currentlySuccessful = function() {
-        var count = this.builds.length;
-        return count >= 1 && this.builds[count - 1].success();
+        return this.has_builds() && this.builds[this.builds.length - 1].success();
     };
 
     Job.prototype.refreshResult = function (data) {
@@ -266,10 +269,11 @@ $(function () {
         xAxis.render();
     };
 
-    function JobRender(container) {
+    function JobRender(container, summary) {
         this.panels = {};
         this.jobs = [];
         this.container = container;
+        this.summary = summary;
         this.count = 0;
     }
 
@@ -281,7 +285,6 @@ $(function () {
         this.jobs.sort(function(a,b) {
             return a.name.localeCompare(b.name);
         });
-
         this.container.empty();
 
         var render = this;
@@ -367,6 +370,18 @@ $(function () {
 
     JobRender.prototype.job_updated = function (job) {
         this.panels[job.name].job_updated(job);
+
+
+        var count = $.grep(this.jobs, function(j,i) {
+            return j.has_builds() && ! j.currentlySuccessful();
+        }).length;
+
+        if ( count == 0 ) {
+            this.summary.text("");
+        }
+        else {
+            this.summary.text(count + " failing");
+        }
     };
 
     var uri = getQuery("view");
@@ -375,7 +390,13 @@ $(function () {
         alert("use ?view=<view uri>");
     }
     else {
-        var render = new JobRender($("#builds"));
+        var parts = uri.split("/");
+        var title = parts[parts.length - 2];
+
+        $("#view").text(title);
+        $("title").text(title);
+
+        var render = new JobRender($("#builds"), $("#summary"));
 
         var v = new View(uri, render);
         v.bootstrap();
