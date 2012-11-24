@@ -371,7 +371,6 @@ $(function () {
     JobRender.prototype.job_updated = function (job) {
         this.panels[job.name].job_updated(job);
 
-
         var count = $.grep(this.jobs, function(j,i) {
             return j.has_builds() && ! j.currentlySuccessful();
         }).length;
@@ -387,6 +386,10 @@ $(function () {
 
     };
 
+    function endsWith(str, suffix) {
+        return str.indexOf(suffix, str.length - suffix.length) !== -1;
+    }
+
     var uri = getQuery("view");
 
     if (!uri) {
@@ -394,7 +397,7 @@ $(function () {
     }
     else {
         var parts = uri.split("/");
-        var title = parts[parts.length - 2];
+        var title = parts[parts.length - ( endsWith(uri, "/") ? 2 : 1) ];
 
         $("#view").text(title);
         $("title").text(title);
