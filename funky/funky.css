@@ -83,6 +83,7 @@ img {
 
 .passed .graph {
     /*background-color: #468847;*/
+    opacity: 0.75;
 }
 
 .graph.disabled, .graph.never-run {
@@ -117,7 +118,6 @@ p.descriptiontext{
     width: 50px;
     background-image: url(../shared/spinner.png);
     -webkit-animation: spinnerRotate 2s linear infinite;
-    -moz-animation: spinnerRotate 2s linear infinite;
 }
 
 @-webkit-keyframes spinnerRotate {

@@ -92,6 +92,11 @@ $(function () {
         return this.builds[count - 1].number();
     };
 
+    Job.prototype.currentlySuccessful = function() {
+        var count = this.builds.length;
+        return count >= 1 && this.builds[count - 1].success();
+    };
+
     Job.prototype.refreshResult = function (data) {
         var job = this;
 
@@ -111,6 +116,7 @@ $(function () {
 
             $.each(builds, function (i, b) {
                 if (b.number > job.highestBuildNumber() && b.number <= lastCompleted.number) {
+                    console.log("Loading " + job.name + ":" + b.number );
                     hudsonapi(b.url, function (data) {
                         job.updateBuildResult(data);
                     });
@@ -207,19 +213,8 @@ $(function () {
                 div.removeClass();
                 div.addClass("job");
 
-                if (job.is_runnning) {
-                    div.addClass("running");
-                }
-                else {
-                    div.addClass("waiting");
-                }
-
-                if ( job.builds[job.builds.length - 1].success() ) {
-                    div.addClass("passed");
-                }
-                else {
-                    div.addClass("failed");
-                }
+                div.addClass(job.is_running ? "running" : "waiting");
+                div.addClass(job.currentlySuccessful() ? "passed" : "failed");
 
                 this.render_graph(job);
 
@@ -273,16 +268,27 @@ $(function () {
 
     function JobRender(container) {
         this.panels = {};
+        this.jobs = [];
         this.container = container;
         this.count = 0;
     }
 
     JobRender.prototype.found_new_job = function (job) {
         console.log("********* New job " + job.name);
-        var panel = new JobPanel(job);
+        this.panels[job.name] = new JobPanel(job);
 
-        this.panels[job.name] = panel;
-        this.container.append(panel.div);
+        this.jobs.push(job);
+        this.jobs.sort(function(a,b) {
+            return a.name.localeCompare(b.name);
+        });
+
+        this.container.empty();
+
+        var render = this;
+
+        $.each(this.jobs, function(i,j) {
+            render.container.append(render.panels[j.name].div);
+        });
 
         this.count++;
 
@@ -358,7 +364,6 @@ $(function () {
 
         console.log("Count is " + count + " Available height, width " + height + " , " + width);
     };
-
 
     JobRender.prototype.job_updated = function (job) {
         this.panels[job.name].job_updated(job);
