@@ -377,7 +377,7 @@ $(function () {
 
         if ( count == 0 ) {
             this.summary.text("");
-            $("body".removeClass("failed"))
+            $("body").removeClass("failed");
         }
         else {
             this.summary.text(count + " failing");
