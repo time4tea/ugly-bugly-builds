@@ -338,7 +338,7 @@ $(function () {
 
         var count = this.count;
 
-        var width = vpw - 30;
+        var width = vpw - 50;
         var height = vph - ( this.container.offset().top + 30) ;
 
         var ratio = 1 / 1.618;
@@ -378,10 +378,13 @@ $(function () {
 
         if ( count == 0 ) {
             this.summary.text("");
+            $("body".removeClass("failed"))
         }
         else {
             this.summary.text(count + " failing");
+            $("body").addClass("failed");
         }
+
     };
 
     var uri = getQuery("view");
