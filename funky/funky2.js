@@ -211,19 +211,15 @@ $(function () {
 
         var most_recent_build = job.highestBuildNumber();
 
+        div.removeClass();
+        div.addClass("job");
+        div.addClass(job.is_running ? "running" : "waiting");
+        div.addClass(job.currentlySuccessful() ? "passed" : "failed");
+
         if (most_recent_build > this.plotted) {
             if (job.builds.length == job.builds_available) {
-
                 console.log("Redrawing " + job.name + " for build " + most_recent_build);
-
-                div.removeClass();
-                div.addClass("job");
-
-                div.addClass(job.is_running ? "running" : "waiting");
-                div.addClass(job.currentlySuccessful() ? "passed" : "failed");
-
                 this.render_graph(job);
-
                 this.plotted = most_recent_build;
             }
         }
