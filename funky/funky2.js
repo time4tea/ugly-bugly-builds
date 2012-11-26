@@ -64,7 +64,7 @@ $(function () {
         this.builds = [];
         this.is_running = false;
         this.listener = listener;
-        this.build_history = 3;
+        this.build_history = 10;
         this.builds_available = -1;
     }
 
@@ -286,13 +286,14 @@ $(function () {
 
         this.jobs.push(job);
         this.jobs.sort(function(a,b) {
-            return a.name.localeCompare(b.name);
+            return a.name.toLocaleLowerCase().localeCompare(b.name.toLocaleLowerCase());
         });
         this.container.empty();
 
         var render = this;
 
         $.each(this.jobs, function(i,j) {
+            console.log("Addind div for " + j.name)
             render.container.append(render.panels[j.name].div);
         });
 
