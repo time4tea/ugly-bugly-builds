@@ -64,7 +64,7 @@ $(function () {
         this.builds = [];
         this.is_running = false;
         this.listener = listener;
-        this.build_history = 5;
+        this.build_history = 3;
         this.builds_available = -1;
     }
 
@@ -113,18 +113,21 @@ $(function () {
         }
 
         if (this.highestBuildNumber() < lastCompleted.number) {
-            var builds = data.builds.slice(0, this.build_history);
+            var builds = data.builds.slice(0, this.build_history  );
 
-            this.builds_available = builds.length;
+            var possibly_available = 0;
 
             $.each(builds, function (i, b) {
                 if (b.number > job.highestBuildNumber() && b.number <= lastCompleted.number) {
                     console.log("Loading " + job.name + ":" + b.number );
+                    possibly_available++;
                     hudsonapi(b.url, function (data) {
                         job.updateBuildResult(data);
                     });
                 }
             });
+
+            this.builds_available = possibly_available;
         }
 
         job.listener.job_updated(this);
