@@ -113,7 +113,17 @@ $(function () {
         }
 
         if (this.highestBuildNumber() < lastCompleted.number) {
-            var builds = data.builds.slice(0, this.build_history );
+
+            var builds;
+
+            if ( this.is_running ) {
+                builds = data.builds.slice(1, this.build_history + 1);
+            }
+            else {
+                builds = data.builds.slice(0, this.build_history);
+            }
+
+            this.builds_available = builds.length;
 
             $.each(builds, function (i, b) {
                 if ( b.number <= lastCompleted.number ) {
@@ -212,9 +222,12 @@ $(function () {
         div.addClass(job.is_running ? "running" : "waiting");
         div.addClass(job.currentlySuccessful() ? "passed" : "failed");
 
-        if ( job.has_builds() ) {
-            console.log("Redrawing " + job.name + " for build " + most_recent_build);
-            this.render_graph(job);
+        if (most_recent_build > this.plotted) {
+            if (job.builds.length == job.builds_available) {
+                console.log("Redrawing " + job.name + " for build " + most_recent_build);
+                this.render_graph(job);
+                this.plotted = most_recent_build;
+            }
         }
     };
 
