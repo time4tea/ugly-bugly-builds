@@ -58,8 +58,9 @@ $(function () {
         }
     };
 
-    function Job(name, uri, listener) {
+    function Job(name, display_name, uri, listener) {
         this.name = name;
+        this.display_name = display_name;
         this.uri = uri;
         this.builds = [];
         this.is_running = false;
@@ -196,19 +197,34 @@ $(function () {
         }
         else {
             var name = j.name;
+            var job;
             if (this.jobs[name]) {
-                this.jobs[name].refresh();
+                job = this.jobs[name];
             } else if (!isDisabled(j)) {
-                var job = new Job(name, j.url, this.listener);
-                this.jobs[name] = job;
-                this.listener.found_new_job(job);
-                job.refresh();
+                job = this.create_job(j);
             }
+            job.refresh();
         }
     };
 
+    View.prototype.create_job = function(j) {
+
+        var display_name = this.display_name(j);
+
+        var name = j.name;
+        var job = new Job(name, display_name, j.url, this.listener);
+        this.jobs[name] = job;
+        this.listener.found_new_job(job);
+        return job;
+    };
+
+    View.prototype.display_name = function(j) {
+        var display_name = j.displayName || j.name;
+        return display_name.replace(/[\_\,\-]/g, "\n");
+    };
+
     function JobPanel(job) {
-        this.div = ich.testgraph({ name:job.name });
+        this.div = ich.testgraph({ name:job.display_name });
         this.graph_div = this.div.children(".graph")[0];
         this.plotted = -1;
     }
@@ -295,7 +311,7 @@ $(function () {
         var render = this;
 
         $.each(this.jobs, function(i,j) {
-            console.log("Addind div for " + j.name)
+            console.log("Adding div for " + j.name);
             render.container.append(render.panels[j.name].div);
         });
 
