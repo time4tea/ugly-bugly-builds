@@ -118,12 +118,15 @@ $(function () {
             var possibly_available = 0;
 
             $.each(builds, function (i, b) {
-                if (b.number > job.highestBuildNumber() && b.number <= lastCompleted.number) {
-                    console.log("Loading " + job.name + ":" + b.number );
+                if ( b.number <= lastCompleted.number ) {
                     possibly_available++;
-                    hudsonapi(b.url, function (data) {
-                        job.updateBuildResult(data);
-                    });
+
+                    if (b.number > job.highestBuildNumber() ) {
+                        console.log("Loading " + job.name + ":" + b.number );
+                        hudsonapi(b.url, function (data) {
+                            job.updateBuildResult(data);
+                        });
+                    }
                 }
             });
 
@@ -158,7 +161,7 @@ $(function () {
 
         setTimeout(function () {
             view.bootstrap();
-        }, 30000);
+        }, 10000);
     };
 
     function isMatrixBuild(j) {
@@ -210,7 +213,6 @@ $(function () {
         var div = this.div;
 
         var most_recent_build = job.highestBuildNumber();
-
         div.removeClass();
         div.addClass("job");
         div.addClass(job.is_running ? "running" : "waiting");
