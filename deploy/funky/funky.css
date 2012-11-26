@@ -1,0 +1,122 @@
+body {
+    font-size: 12px;
+    background: -webkit-linear-gradient(45deg, #020031 0%,#6D3353 100%);
+
+    color: white;
+    font-family: sans-serif;
+    padding: 8px;
+    margin: 0;
+}
+
+body.failed {
+    background: -webkit-linear-gradient(45deg, #EE5F5B 0%,#FCC7BF 100%);
+}
+
+#summary {
+    text-align: right;
+}
+
+h1 {
+    font-size: 72px;
+    font-weight: bold;
+    margin-bottom: 20px;
+}
+
+img {
+    display: block;
+}
+
+.job {
+    display: inline-block;
+    padding: 0;
+    margin: 0;
+}
+
+#container {
+}
+
+.graph {
+    position:relative;
+    float: left;
+    padding: 16px;
+    margin: 8px;
+    overflow: hidden;
+    -webkit-border-radius: 8px;
+
+}
+
+.graph .y_grid path, .graph .x_grid path {
+    fill: none;
+    stroke: none;
+}
+
+.graph .y_ticks path, .graph .x_ticks path {
+    fill: none;
+    stroke: #808080;
+}
+
+.graph .y_ticks text, .graph .x_ticks text {
+    opacity: 0.5;
+    font-size: 12px;
+    pointer-events: none;
+}
+
+.failed  .graph {
+    background: -webkit-linear-gradient(top, #EE5F5B, #BD362F);
+}
+
+.passed .graph {
+    background: -webkit-gradient(linear, 0 0, 0 100%, from(#62C462), to(#51A351));
+}
+
+.graph.disabled, .graph.never-run {
+    background-color: #808080;
+    opacity: 0.5;
+}
+
+div.new {
+    display: none;
+}
+
+div.description{
+    position:absolute; /* absolute position (so we can position it where we want)*/
+    bottom:30%; /* position will be on bottom */
+    /*left:10%;*/
+    width:100%;
+    font-size:50px;
+    color:gray;
+    /*opacity:0.6; *//* transparency */
+}
+
+p.descriptiontext{
+    padding:10px;
+    margin:0;
+    font-family: 'Ubuntu', sans-serif;
+}
+
+.title {
+    font-family: 'Ubuntu', sans-serif;
+}
+
+.spinner {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    height: 50px;
+    width: 50px;
+    background-image: url(../shared/spinner.png);
+    -webkit-animation: spinnerRotate 2s linear infinite;
+}
+
+@-webkit-keyframes spinnerRotate {
+    from {
+        -webkit-transform: rotate(0deg);
+    }
+    to {
+        -webkit-transform: rotate(360deg);
+    }
+}
+
+.waiting .spinner {
+    display: none;
+}
