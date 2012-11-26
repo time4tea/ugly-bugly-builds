@@ -37,12 +37,20 @@
 
 <p>A dashboard to show the current status of your <a href="http://jenkins-ci.org/">Jenkins</a> builds. There are two types of dashboard currently available.</p>
 
+<p>The funky build also supports jenkins matrix builds, drilling down into the matrix builds - showing you the status and history of all configurations.</p>
+
+<h3>Examples</h3>
+
+<p><img src="images/screenshot-failed.png" alt="screenshot"></p>
+
 <h3>How to use</h3>
 
 <p>Be using Jenkins, and want to display your builds on a dashboard
 Clone the repo into some place
 Point your browser at that place - with a couple of parameters
 That's it</p>
+
+<p>Only <a href="http://www.google.com/chrome">Chrome</a> is supported just now...</p>
 
 <h3>Parameters?</h3>
 
@@ -52,7 +60,7 @@ That's it</p>
 
 <pre><code>git clone git://github.com/time4tea/fugly-bugly-builds.git
 file:///home/bob/fugly-bugly-builds/fugly/fugly.html?ci=http://buildserver&amp;view=trunk
-file:///home/bob/fugly-bugly-builds/funky/funky.html?ci=http://buildserver&amp;view=trunk
+file:///home/bob/fugly-bugly-builds/funky/funky.html?view=http://buildserver/hudson/view/trunk
 </code></pre>
 
 <h2>History</h2>
