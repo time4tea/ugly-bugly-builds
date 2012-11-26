@@ -113,14 +113,10 @@ $(function () {
         }
 
         if (this.highestBuildNumber() < lastCompleted.number) {
-            var builds = data.builds.slice(0, this.build_history  );
-
-            var possibly_available = 0;
+            var builds = data.builds.slice(0, this.build_history );
 
             $.each(builds, function (i, b) {
                 if ( b.number <= lastCompleted.number ) {
-                    possibly_available++;
-
                     if (b.number > job.highestBuildNumber() ) {
                         console.log("Loading " + job.name + ":" + b.number );
                         hudsonapi(b.url, function (data) {
@@ -129,8 +125,6 @@ $(function () {
                     }
                 }
             });
-
-            this.builds_available = possibly_available;
         }
 
         job.listener.job_updated(this);
@@ -218,12 +212,9 @@ $(function () {
         div.addClass(job.is_running ? "running" : "waiting");
         div.addClass(job.currentlySuccessful() ? "passed" : "failed");
 
-        if (most_recent_build > this.plotted) {
-            if (job.builds.length == job.builds_available) {
-                console.log("Redrawing " + job.name + " for build " + most_recent_build);
-                this.render_graph(job);
-                this.plotted = most_recent_build;
-            }
+        if ( job.has_builds() ) {
+            console.log("Redrawing " + job.name + " for build " + most_recent_build);
+            this.render_graph(job);
         }
     };
 
