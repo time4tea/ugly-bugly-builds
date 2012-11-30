@@ -224,7 +224,7 @@ $(function () {
     };
 
     function JobPanel(job) {
-        this.div = ich.testgraph({ name:job.display_name });
+        this.div = ich.testgraph({ uri:job.uri, name:job.display_name });
         this.graph_div = this.div.children(".graph")[0];
         this.plotted = -1;
     }
