@@ -42,7 +42,6 @@ img {
     margin: 8px;
     overflow: hidden;
     -webkit-border-radius: 8px;
-
 }
 
 .graph .y_grid path, .graph .x_grid path {
@@ -67,6 +66,10 @@ img {
 
 .passed .graph {
     background: -webkit-gradient(linear, 0 0, 0 100%, from(#62C462), to(#51A351));
+}
+
+.graph svg {
+    background: white;
 }
 
 .graph.disabled, .graph.never-run {
