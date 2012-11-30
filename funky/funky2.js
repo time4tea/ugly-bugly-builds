@@ -152,10 +152,11 @@ $(function () {
         this.listener.job_updated(this);
     };
 
-    function View(uri, listener) {
+    function View(uri, listener, params) {
         this.uri = uri;
         this.jobs = {};
         this.listener = listener;
+        this.params = params;
     }
 
     View.prototype.bootstrap = function () {
@@ -186,6 +187,22 @@ $(function () {
         });
     };
 
+    View.prototype.interested_in = function(j) {
+        var include = this.params["include"];
+        if ( include ) {
+            if ( !j.name.match(include)) {
+                return false;
+            }
+        }
+        var exclude = this.params["exclude"];
+        if ( exclude ) {
+            if (j.name.match(exclude)) {
+                return false;
+            }
+        }
+        return true;
+    };
+
     View.prototype.refreshJob = function (j) {
         var view = this;
         if (isMatrixBuild(j)) {
@@ -198,12 +215,16 @@ $(function () {
         else {
             var name = j.name;
             var job;
-            if (this.jobs[name]) {
-                job = this.jobs[name];
-            } else if (!isDisabled(j)) {
-                job = this.create_job(j);
+
+            if ( this.interested_in(j)) {
+
+                if (this.jobs[name]) {
+                    job = this.jobs[name];
+                } else if (!isDisabled(j)) {
+                    job = this.create_job(j);
+                }
+                job.refresh();
             }
-            job.refresh();
         }
     };
 
@@ -223,11 +244,16 @@ $(function () {
         return display_name.replace(/[\_\,\-]/g, "\n");
     };
 
-    function JobPanel(job) {
+    function JobPanel(job, silence) {
         this.div = ich.testgraph({ name:job.display_name });
         this.graph_div = this.div.children(".graph")[0];
         this.plotted = -1;
+        this.silenced = silence;
     }
+
+    JobPanel.prototype.is_successful = function(job) {
+        return this.silenced || job.currentlySuccessful();
+    };
 
     JobPanel.prototype.job_updated = function (job) {
         var div = this.div;
@@ -236,7 +262,7 @@ $(function () {
         div.removeClass();
         div.addClass("job");
         div.addClass(job.is_running ? "running" : "waiting");
-        div.addClass(job.currentlySuccessful() ? "passed" : "failed");
+        div.addClass(this.is_successful(job) ? "passed" : "failed");
 
         if (most_recent_build > this.plotted) {
             if (job.builds.length == job.builds_available) {
@@ -290,17 +316,22 @@ $(function () {
         xAxis.render();
     };
 
-    function JobRender(container, summary) {
+    function JobRender(container, summary, params) {
         this.panels = {};
         this.jobs = [];
         this.container = container;
         this.summary = summary;
         this.count = 0;
+        this.params = params;
     }
+
+    JobRender.prototype.is_silenced = function(job) {
+        return this.params["silence"] && job.name.match(this.params["silence"]);
+    };
 
     JobRender.prototype.found_new_job = function (job) {
         console.log("********* New job " + job.name);
-        this.panels[job.name] = new JobPanel(job);
+        this.panels[job.name] = new JobPanel(job, this.is_silenced(job));
 
         this.jobs.push(job);
         this.jobs.sort(function(a,b) {
@@ -391,18 +422,28 @@ $(function () {
     };
 
     JobRender.prototype.job_updated = function (job) {
+        var render = this;
         this.panels[job.name].job_updated(job);
 
-        var count = $.grep(this.jobs, function(j,i) {
-            return j.has_builds() && ! j.currentlySuccessful();
+        var fail_count = $.grep(this.jobs, function(j,i) {
+
+            if ( !j.has_builds() ) {
+                return false;
+            }
+
+            if ( render.is_silenced(j) ) {
+                return false;
+            }
+
+            return ! j.currentlySuccessful();
         }).length;
 
-        if ( count == 0 ) {
+        if ( fail_count == 0 ) {
             this.summary.text("");
             $("body").removeClass("failed");
         }
         else {
-            this.summary.text(count + " failing");
+            this.summary.text(fail_count + " failing");
             $("body").addClass("failed");
         }
 
@@ -421,12 +462,22 @@ $(function () {
         var parts = uri.split("/");
         var title = parts[parts.length - ( endsWith(uri, "/") ? 2 : 1) ];
 
+        var params = {};
+
+        var include = getQuery("include");
+        var exclude = getQuery("exclude");
+        var silence = getQuery("silence");
+
         $("#view").text(title);
         $("title").text(title);
 
-        var render = new JobRender($("#builds"), $("#summary"));
+        var render = new JobRender(
+            $("#builds"),
+            $("#summary"),
+            { silence : silence }
+        );
 
-        var v = new View(uri, render);
+        var v = new View(uri, render, { include : include, exclude : exclude });
         v.bootstrap();
     }
 });
