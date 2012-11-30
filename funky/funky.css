@@ -95,7 +95,6 @@ p.descriptiontext{
     padding:10px;
     margin:0;
     font-family: 'Ubuntu', sans-serif;
-    pointer-events: none;
 }
 
 .title {
