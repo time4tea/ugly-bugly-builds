@@ -270,6 +270,7 @@ $(function () {
             stroke:true,
             series:[
                 { data:pass, color:'lightgreen' },
+                { data:skipped, color: 'yellow'},
                 { data:fail, color:'pink' }
             ]
         });
