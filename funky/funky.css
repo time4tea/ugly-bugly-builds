@@ -68,6 +68,10 @@ img {
     background: -webkit-gradient(linear, 0 0, 0 100%, from(#62C462), to(#51A351));
 }
 
+.silenced .graph {
+    background: -webkit-gradient(linear, 0 0, 0 100%, from(#dddddd), to(#222222));
+}
+
 .graph svg {
     background: white;
 }

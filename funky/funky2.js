@@ -251,10 +251,6 @@ $(function () {
         this.silenced = silence;
     }
 
-    JobPanel.prototype.is_successful = function(job) {
-        return this.silenced || job.currentlySuccessful();
-    };
-
     JobPanel.prototype.job_updated = function (job) {
         var div = this.div;
 
@@ -262,8 +258,7 @@ $(function () {
         div.removeClass();
         div.addClass("job");
         div.addClass(job.is_running ? "running" : "waiting");
-        div.addClass(this.is_successful(job) ? "passed" : "failed");
-
+        div.addClass(job.currentlySuccessful() ? "passed" : this.silenced ? "silenced" : "failed");
         if (most_recent_build > this.plotted) {
             if (job.builds.length == job.builds_available) {
                 console.log("Redrawing " + job.name + " for build " + most_recent_build);
