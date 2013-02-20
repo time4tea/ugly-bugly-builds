@@ -1,9 +1,5 @@
 $(function () {
 
-    var xhrerror = function (xhr, status, error) {
-        console.log(this.name + ": error " + status + ":" + error);
-    };
-
     function getQuery(query) {
         query = query.replace(/[\[]/, "\\\[").replace(/[\]]/, "\\\]");
         var expr = "[\\?&]" + query + "=([^&#]*)";
@@ -16,19 +12,44 @@ $(function () {
         }
     }
 
-    function hudsonapi(url, success, error) {
-        if (!url.match("/$")) {
-            url = url + "/";
-        }
 
-        $.ajax({
-            url:url + "api/json",
-            dataType:"jsonp",
-            jsonp:"jsonp",
-            success:success,
-            error:error
-        })
+    function hudsonapi(url, success, error) {
+        hudson.fetch(url, success, error)
     }
+
+    var hudson = {
+        outstanding : 0,
+
+        fetch : function(url, success, error) {
+            if (!url.match("/$")) {
+                url = url + "/";
+            }
+
+            this.outstanding++;
+
+            $.ajax({
+                url:url + "api/json",
+                dataType:"jsonp",
+                jsonp:"jsonp",
+                success: this.countDownOn(success),
+                error: this.countDownOn(error)
+            });
+        },
+
+        countDownOn : function(f) {
+            var self = this;
+
+            return function(arguments) {
+                f(arguments);
+                self.outstanding--;
+                if (self.outstanding == 0) {
+                    self.finished();
+                }
+            }
+        },
+
+        finished: function() {}
+    };
 
     function Build(data) {
         this.data = data;
@@ -159,15 +180,23 @@ $(function () {
         this.params = params;
     }
 
+    View.prototype.scheduleRefresh = function(interval) {
+        var self=this
+        setTimeout(function () {
+            self.bootstrap(interval);
+        }, interval);
+    };
+
     View.prototype.bootstrap = function () {
         var view = this;
-        hudsonapi(this.uri, function (data) {
-            view.refreshViewContents(data);
-        }, xhrerror);
-
-        setTimeout(function () {
-            view.bootstrap();
-        }, 10000);
+        hudsonapi(this.uri,
+                    function (data) {
+                        view.refreshViewContents(data);
+                    },
+                    function (xhr, status, error) {
+                        console.log("error in refresh " + status + ":" + error);
+                    }
+        );
     };
 
     function isMatrixBuild(j) {
@@ -463,6 +492,7 @@ $(function () {
         var include = getQuery("include");
         var exclude = getQuery("exclude");
         var silence = getQuery("silence");
+        var interval = getQuery("interval") || 60000;
 
         $("#view").text(title);
         $("title").text(title);
@@ -474,6 +504,10 @@ $(function () {
         );
 
         var v = new View(uri, render, { include : include, exclude : exclude });
+
+        hudson.finished = function() {
+            console.log('Jobs done : refreshing w/ interval: '+interval);
+            v.scheduleRefresh(interval);};
         v.bootstrap();
     }
 });
