@@ -244,7 +244,9 @@ $(function () {
                 } else if (!isDisabled(j)) {
                     job = this.create_job(j);
                 }
-                job.refresh();
+                if ( job ) {
+                    job.refresh();
+                }
             }
         }
     };
@@ -479,8 +481,6 @@ $(function () {
         var parts = uri.split("/");
         var title = parts[parts.length - ( endsWith(uri, "/") ? 2 : 1) ];
 
-        var params = {};
-
         var include = getQuery("include");
         var exclude = getQuery("exclude");
         var silence = getQuery("silence");
@@ -500,6 +500,7 @@ $(function () {
         hudson.finished = function() {
             console.log('Jobs done : refreshing w/ interval: '+interval);
             v.scheduleRefresh(interval);};
+
         v.bootstrap();
     }
 });
