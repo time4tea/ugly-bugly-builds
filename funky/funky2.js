@@ -86,7 +86,7 @@ $(function () {
         this.builds = [];
         this.is_running = false;
         this.listener = listener;
-        this.build_history = 10;
+        this.how_many_builds_to_show = 10;
         this.builds_available = -1;
     }
 
@@ -123,9 +123,8 @@ $(function () {
     };
 
     Job.prototype.refreshResult = function (data) {
-        var job = this;
 
-        job.is_running = jobIsRunning(data);
+        this.is_running = jobIsRunning(data);
 
         var lastCompleted = data.lastCompletedBuild;
 
@@ -136,17 +135,10 @@ $(function () {
 
         if (this.highestBuildNumber() < lastCompleted.number) {
 
-            var builds;
-
-            if ( this.is_running ) {
-                builds = data.builds.slice(1, this.build_history + 1);
-            }
-            else {
-                builds = data.builds.slice(0, this.build_history);
-            }
-
+            var builds = data.builds.slice(0, this.how_many_builds_to_show);
             this.builds_available = builds.length;
 
+            var job = this;
             $.each(builds, function (i, b) {
                 if ( b.number <= lastCompleted.number ) {
                     if (b.number > job.highestBuildNumber() ) {
@@ -159,7 +151,7 @@ $(function () {
             });
         }
 
-        job.listener.job_updated(this);
+        this.listener.job_updated(this);
     };
 
     Job.prototype.updateBuildResult = function (data) {
@@ -167,8 +159,8 @@ $(function () {
         this.builds.sort(function (a, b) {
             return a.number() - b.number();
         });
-        if (this.builds.length > this.build_history) {
-            this.builds = this.builds.splice(-this.build_history);
+        if (this.builds.length > this.how_many_builds_to_show) {
+            this.builds = this.builds.splice(-this.how_many_builds_to_show);
         }
         this.listener.job_updated(this);
     };
