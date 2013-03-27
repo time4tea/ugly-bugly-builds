@@ -107,21 +107,14 @@ p.descriptiontext{
 
 .spinner {
     position: absolute;
-    top: 20px;
-    right: 20px;
-    height: 50px;
-    width: 50px;
-    background-image: url(../shared/spinner.png);
-    -webkit-animation: spinnerRotate 2s linear infinite;
-}
-
-@-webkit-keyframes spinnerRotate {
-    from {
-        -webkit-transform: rotate(0deg);
-    }
-    to {
-        -webkit-transform: rotate(360deg);
-    }
+    top: 16px;
+    bottom: 16px;
+    left: 16px;
+    right: 16px;
+    background-position: bottom left;
+    background-repeat: no-repeat;
+    background-image: url(images/running.png);
+    opacity: 0.8;
 }
 
 .waiting .spinner {
