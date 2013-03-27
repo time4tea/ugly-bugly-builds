@@ -468,6 +468,19 @@ $(function () {
 
     };
 
+    function UpdateTracker(div) {
+        this.div = div;
+        this.updated();
+        var tracker = this;
+        setInterval(function() {
+            tracker.div.text(tracker.moment.fromNow())
+        }, 1000)
+    }
+
+    UpdateTracker.prototype.updated = function () {
+        this.moment = moment();
+    };
+
     function endsWith(str, suffix) {
         return str.indexOf(suffix, str.length - suffix.length) !== -1;
     }
@@ -489,16 +502,19 @@ $(function () {
         $("#view").text(title);
         $("title").text(title);
 
-        var render = new JobRender(
+        var renderer = new JobRender(
             $("#builds"),
             $("#summary"),
             { silence : silence }
         );
 
-        var v = new View(uri, render, { include : include, exclude : exclude });
+        var updateTracker = new UpdateTracker($('#updatetime'));
+
+        var v = new View(uri, renderer, { include : include, exclude : exclude });
 
         hudson.finished = function() {
             console.log('Jobs done : refreshing w/ interval: '+interval);
+            updateTracker.updated();
             v.scheduleRefresh(interval);};
 
         v.bootstrap();
