@@ -121,9 +121,11 @@ p.descriptiontext{
     display: none;
 }
 
-#updatetime {
+#updated {
+    position: fixed;
+    bottom: 0;
+    right: 0;
     text-align: right;
     font-family: 'Ubuntu', sans-serif;
-    font-size: 18pt;
-    bottom: 18pt;
+    font-size: 64pt;
 }
