@@ -94,15 +94,19 @@ $(function () {
         return this.name;
     };
 
-    Job.prototype.refresh = function () {
+    Job.prototype.refresh = function (parent_enabled) {
         var job = this;
         hudsonapi(this.uri, function (data) {
-            job.refreshResult(data);
+            job.refreshResult(data, parent_enabled);
         })
     };
 
-    function jobIsRunning(j) {
-        return j.color.indexOf("anime") != -1;
+    function jobIsRunning(data) {
+        return data.color.indexOf("anime") != -1;
+    }
+
+    function jobIsPaused(data) {
+        return data.color.indexOf("disabled") != -1;
     }
 
     Job.prototype.highestBuildNumber = function () {
@@ -122,9 +126,11 @@ $(function () {
         return this.has_builds() && this.builds[this.builds.length - 1].success();
     };
 
-    Job.prototype.refreshResult = function (data) {
+    Job.prototype.refreshResult = function (data, parent_enabled) {
 
-        this.is_running = jobIsRunning(data);
+        this.is_running = jobIsRunning(data) ;
+        // paused if explicitly paused, or parent is paused
+        this.is_paused = jobIsPaused(data) || ! parent_enabled;
 
         var lastCompleted = data.lastCompletedBuild;
 
@@ -195,15 +201,15 @@ $(function () {
         return j.activeConfigurations;
     }
 
-    function isDisabled(j) {
-        return j.color.indexOf("disabled") != -1;
+    function isEnabled(j) {
+        return j.color.indexOf("disabled") == -1;
     }
 
     View.prototype.refreshViewContents = function (data) {
         var view = this;
         $.each(data.jobs, function (i, j) {
             hudsonapi(j.url, function (data) {
-                view.refreshJob(data);
+                view.refreshJob(data, true);
             })
         });
     };
@@ -224,12 +230,16 @@ $(function () {
         return true;
     };
 
-    View.prototype.refreshJob = function (j) {
+    View.prototype.refreshJob = function (j, parent_enabled ) {
         var view = this;
+
+
+        var job_enabled = isEnabled(j);
+
         if (isMatrixBuild(j)) {
             $.each(j.activeConfigurations, function (i, m) {
                 hudsonapi(m.url, function (data) {
-                    view.refreshJob(data);
+                    view.refreshJob(data, job_enabled );
                 })
             });
         }
@@ -241,11 +251,11 @@ $(function () {
 
                 if (this.jobs[name]) {
                     job = this.jobs[name];
-                } else if (!isDisabled(j)) {
+                } else if ( job_enabled ) {
                     job = this.create_job(j);
                 }
                 if ( job ) {
-                    job.refresh();
+                    job.refresh(parent_enabled);
                 }
             }
         }
@@ -280,7 +290,13 @@ $(function () {
         var most_recent_build = job.highestBuildNumber();
         div.removeClass();
         div.addClass("job");
-        div.addClass(job.is_running ? "running" : "waiting");
+        if ( ! job.is_paused ) {
+            div.addClass(job.is_running ? "running" : "waiting");
+        }
+        else {
+            div.addClass("paused");
+        }
+
         div.addClass(job.currentlySuccessful() ? "passed" : this.silenced ? "silenced" : "failed");
         if (most_recent_build > this.plotted) {
             if (job.builds.length == job.builds_available) {

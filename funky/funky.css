@@ -105,19 +105,36 @@ p.descriptiontext{
     font-family: 'Ubuntu', sans-serif;
 }
 
-.spinner {
+.status-icon {
     position: absolute;
     top: 16px;
     bottom: 16px;
     left: 16px;
     right: 16px;
-    background-position: bottom left;
-    background-repeat: no-repeat;
-    background-image: url(images/running.png);
     opacity: 0.8;
 }
 
+.spinner {
+    background: url(images/running.png) no-repeat bottom left;
+}
+
+.paws {
+    background: url(images/paused.png) no-repeat bottom left;
+}
+
 .waiting .spinner {
+    display: none;
+}
+
+.waiting .paws {
+    display: none;
+}
+
+.paused .spinner {
+    display: none;
+}
+
+.running .paws {
     display: none;
 }
 
