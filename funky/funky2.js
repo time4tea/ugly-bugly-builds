@@ -274,6 +274,20 @@ $(function () {
 
     View.prototype.display_name = function(j) {
         var display_name = j.displayName || j.name;
+
+        var displayaxes = this.params["displayaxes"];
+
+        if (displayaxes ) {
+            if (display_name.indexOf(",") > -1) {
+                var axes = display_name.split(",");
+                if (axes.length >= 1) {
+                    return $.map(display_axes.split(","),function (a, k) {
+                        return axes[ parseInt(a)];
+                    }).join("\n");
+                }
+            }
+        }
+
         return display_name.replace(/[\_\,\-]/g, "\n");
     };
 
@@ -513,6 +527,9 @@ $(function () {
         var include = getQuery("include");
         var exclude = getQuery("exclude");
         var silence = getQuery("silence");
+
+        var display_axes = getQuery("displayaxes");
+
         var interval = getQuery("interval") || 60000;
 
         $("#view").text(title);
@@ -526,7 +543,7 @@ $(function () {
 
         var updateTracker = new UpdateTracker($('#updatetime'));
 
-        var v = new View(uri, renderer, { include : include, exclude : exclude });
+        var v = new View(uri, renderer, { include : include, exclude : exclude, displayaxes : display_axes });
 
         hudson.finished = function() {
             console.log('Jobs done : refreshing w/ interval: '+interval);
