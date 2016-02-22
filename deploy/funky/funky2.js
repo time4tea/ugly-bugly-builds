@@ -1,9 +1,5 @@
 $(function () {
 
-    var xhrerror = function (xhr, status, error) {
-        console.log(this.name + ": error " + status + ":" + error);
-    };
-
     function getQuery(query) {
         query = query.replace(/[\[]/, "\\\[").replace(/[\]]/, "\\\]");
         var expr = "[\\?&]" + query + "=([^&#]*)";
@@ -16,19 +12,44 @@ $(function () {
         }
     }
 
-    function hudsonapi(url, success, error) {
-        if (!url.match("/$")) {
-            url = url + "/";
-        }
 
-        $.ajax({
-            url:url + "api/json",
-            dataType:"jsonp",
-            jsonp:"jsonp",
-            success:success,
-            error:error
-        })
+    function hudsonapi(url, success, error) {
+        hudson.fetch(url, success, error)
     }
+
+    var hudson = {
+        outstanding : 0,
+
+        fetch : function(url, success, error) {
+            if (!url.match("/$")) {
+                url = url + "/";
+            }
+
+            this.outstanding++;
+
+            $.ajax({
+                url:url + "api/json",
+                dataType:"jsonp",
+                jsonp:"jsonp",
+                success: this.countDownOn(success),
+                error: this.countDownOn(error)
+            });
+        },
+
+        countDownOn : function(f) {
+            var self = this;
+
+            return function(arguments) {
+                f(arguments);
+                self.outstanding--;
+                if (self.outstanding == 0) {
+                    self.finished();
+                }
+            }
+        },
+
+        finished: function() {}
+    };
 
     function Build(data) {
         this.data = data;
@@ -65,7 +86,7 @@ $(function () {
         this.builds = [];
         this.is_running = false;
         this.listener = listener;
-        this.build_history = 10;
+        this.how_many_builds_to_show = 10;
         this.builds_available = -1;
     }
 
@@ -73,15 +94,19 @@ $(function () {
         return this.name;
     };
 
-    Job.prototype.refresh = function () {
+    Job.prototype.refresh = function (parent_enabled) {
         var job = this;
         hudsonapi(this.uri, function (data) {
-            job.refreshResult(data);
+            job.refreshResult(data, parent_enabled);
         })
     };
 
-    function jobIsRunning(j) {
-        return j.color.indexOf("anime") != -1;
+    function jobIsRunning(data) {
+        return data.color.indexOf("anime") != -1;
+    }
+
+    function jobIsPaused(data) {
+        return data.color.indexOf("disabled") != -1;
     }
 
     Job.prototype.highestBuildNumber = function () {
@@ -101,10 +126,11 @@ $(function () {
         return this.has_builds() && this.builds[this.builds.length - 1].success();
     };
 
-    Job.prototype.refreshResult = function (data) {
-        var job = this;
+    Job.prototype.refreshResult = function (data, parent_enabled) {
 
-        job.is_running = jobIsRunning(data);
+        this.is_running = jobIsRunning(data) ;
+        // paused if explicitly paused, or parent is paused
+        this.is_paused = jobIsPaused(data) || ! parent_enabled;
 
         var lastCompleted = data.lastCompletedBuild;
 
@@ -115,17 +141,10 @@ $(function () {
 
         if (this.highestBuildNumber() < lastCompleted.number) {
 
-            var builds;
-
-            if ( this.is_running ) {
-                builds = data.builds.slice(1, this.build_history + 1);
-            }
-            else {
-                builds = data.builds.slice(0, this.build_history);
-            }
-
+            var builds = data.builds.slice(0, this.how_many_builds_to_show);
             this.builds_available = builds.length;
 
+            var job = this;
             $.each(builds, function (i, b) {
                 if ( b.number <= lastCompleted.number ) {
                     if (b.number > job.highestBuildNumber() ) {
@@ -138,7 +157,7 @@ $(function () {
             });
         }
 
-        job.listener.job_updated(this);
+        this.listener.job_updated(this);
     };
 
     Job.prototype.updateBuildResult = function (data) {
@@ -146,8 +165,8 @@ $(function () {
         this.builds.sort(function (a, b) {
             return a.number() - b.number();
         });
-        if (this.builds.length > this.build_history) {
-            this.builds = this.builds.splice(-this.build_history);
+        if (this.builds.length > this.how_many_builds_to_show) {
+            this.builds = this.builds.splice(-this.how_many_builds_to_show);
         }
         this.listener.job_updated(this);
     };
@@ -159,30 +178,38 @@ $(function () {
         this.params = params;
     }
 
+    View.prototype.scheduleRefresh = function(interval) {
+        var self=this
+        setTimeout(function () {
+            self.bootstrap(interval);
+        }, interval);
+    };
+
     View.prototype.bootstrap = function () {
         var view = this;
-        hudsonapi(this.uri, function (data) {
-            view.refreshViewContents(data);
-        }, xhrerror);
-
-        setTimeout(function () {
-            view.bootstrap();
-        }, 10000);
+        hudsonapi(this.uri,
+                    function (data) {
+                        view.refreshViewContents(data);
+                    },
+                    function (xhr, status, error) {
+                        console.log("error in refresh " + status + ":" + error);
+                    }
+        );
     };
 
     function isMatrixBuild(j) {
         return j.activeConfigurations;
     }
 
-    function isDisabled(j) {
-        return j.color.indexOf("disabled") != -1;
+    function isEnabled(j) {
+        return j.color.indexOf("disabled") == -1;
     }
 
     View.prototype.refreshViewContents = function (data) {
         var view = this;
         $.each(data.jobs, function (i, j) {
             hudsonapi(j.url, function (data) {
-                view.refreshJob(data);
+                view.refreshJob(data, true);
             })
         });
     };
@@ -203,12 +230,16 @@ $(function () {
         return true;
     };
 
-    View.prototype.refreshJob = function (j) {
+    View.prototype.refreshJob = function (j, parent_enabled ) {
         var view = this;
+
+
+        var job_enabled = isEnabled(j);
+
         if (isMatrixBuild(j)) {
             $.each(j.activeConfigurations, function (i, m) {
                 hudsonapi(m.url, function (data) {
-                    view.refreshJob(data);
+                    view.refreshJob(data, job_enabled );
                 })
             });
         }
@@ -220,10 +251,12 @@ $(function () {
 
                 if (this.jobs[name]) {
                     job = this.jobs[name];
-                } else if (!isDisabled(j)) {
+                } else if ( job_enabled ) {
                     job = this.create_job(j);
                 }
-                job.refresh();
+                if ( job ) {
+                    job.refresh(parent_enabled);
+                }
             }
         }
     };
@@ -241,6 +274,20 @@ $(function () {
 
     View.prototype.display_name = function(j) {
         var display_name = j.displayName || j.name;
+
+        var displayaxes = this.params["displayaxes"];
+
+        if (displayaxes ) {
+            if (display_name.indexOf(",") > -1) {
+                var axes = display_name.split(",");
+                if (axes.length >= 1) {
+                    return $.map(display_axes.split(","),function (a, k) {
+                        return axes[ parseInt(a)];
+                    }).join("\n");
+                }
+            }
+        }
+
         return display_name.replace(/[\_\,\-]/g, "\n");
     };
 
@@ -251,19 +298,20 @@ $(function () {
         this.silenced = silence;
     }
 
-    JobPanel.prototype.is_successful = function(job) {
-        return this.silenced || job.currentlySuccessful();
-    };
-
     JobPanel.prototype.job_updated = function (job) {
         var div = this.div;
 
         var most_recent_build = job.highestBuildNumber();
         div.removeClass();
         div.addClass("job");
-        div.addClass(job.is_running ? "running" : "waiting");
-        div.addClass(this.is_successful(job) ? "passed" : "failed");
+        if ( ! job.is_paused ) {
+            div.addClass(job.is_running ? "running" : "waiting");
+        }
+        else {
+            div.addClass("paused");
+        }
 
+        div.addClass(job.currentlySuccessful() ? "passed" : this.silenced ? "silenced" : "failed");
         if (most_recent_build > this.plotted) {
             if (job.builds.length == job.builds_available) {
                 console.log("Redrawing " + job.name + " for build " + most_recent_build);
@@ -296,6 +344,7 @@ $(function () {
             stroke:true,
             series:[
                 { data:pass, color:'lightgreen' },
+                { data:skipped, color: 'yellow'},
                 { data:fail, color:'pink' }
             ]
         });
@@ -449,6 +498,19 @@ $(function () {
 
     };
 
+    function UpdateTracker(div) {
+        this.div = div;
+        this.updated();
+        var tracker = this;
+        setInterval(function() {
+            tracker.div.text(tracker.moment.fromNow())
+        }, 1000)
+    }
+
+    UpdateTracker.prototype.updated = function () {
+        this.moment = moment();
+    };
+
     function endsWith(str, suffix) {
         return str.indexOf(suffix, str.length - suffix.length) !== -1;
     }
@@ -462,22 +524,32 @@ $(function () {
         var parts = uri.split("/");
         var title = parts[parts.length - ( endsWith(uri, "/") ? 2 : 1) ];
 
-        var params = {};
-
         var include = getQuery("include");
         var exclude = getQuery("exclude");
         var silence = getQuery("silence");
 
+        var display_axes = getQuery("displayaxes");
+
+        var interval = getQuery("interval") || 60000;
+
         $("#view").text(title);
         $("title").text(title);
 
-        var render = new JobRender(
+        var renderer = new JobRender(
             $("#builds"),
             $("#summary"),
             { silence : silence }
         );
 
-        var v = new View(uri, render, { include : include, exclude : exclude });
+        var updateTracker = new UpdateTracker($('#updatetime'));
+
+        var v = new View(uri, renderer, { include : include, exclude : exclude, displayaxes : display_axes });
+
+        hudson.finished = function() {
+            console.log('Jobs done : refreshing w/ interval: '+interval);
+            updateTracker.updated();
+            v.scheduleRefresh(interval);};
+
         v.bootstrap();
     }
 });

@@ -68,6 +68,10 @@ img {
     background: -webkit-gradient(linear, 0 0, 0 100%, from(#62C462), to(#51A351));
 }
 
+.silenced .graph {
+    background: -webkit-gradient(linear, 0 0, 0 100%, from(#dddddd), to(#222222));
+}
+
 .graph svg {
     background: white;
 }
@@ -83,7 +87,7 @@ div.new {
 
 div.description{
     position:absolute; /* absolute position (so we can position it where we want)*/
-    bottom:30%; /* position will be on bottom */
+    bottom:5%; /* position will be on bottom */
     /*left:10%;*/
     width:100%;
     font-size:50px;
@@ -101,25 +105,44 @@ p.descriptiontext{
     font-family: 'Ubuntu', sans-serif;
 }
 
-.spinner {
+.status-icon {
     position: absolute;
-    top: 20px;
-    right: 20px;
-    height: 50px;
-    width: 50px;
-    background-image: url(../shared/spinner.png);
-    -webkit-animation: spinnerRotate 2s linear infinite;
+    top: 16px;
+    bottom: 16px;
+    left: 16px;
+    right: 16px;
+    opacity: 0.8;
 }
 
-@-webkit-keyframes spinnerRotate {
-    from {
-        -webkit-transform: rotate(0deg);
-    }
-    to {
-        -webkit-transform: rotate(360deg);
-    }
+.spinner {
+    background: url(images/running.png) no-repeat bottom left;
+}
+
+.paws {
+    background: url(images/paused.png) no-repeat bottom left;
 }
 
 .waiting .spinner {
     display: none;
+}
+
+.waiting .paws {
+    display: none;
+}
+
+.paused .spinner {
+    display: none;
+}
+
+.running .paws {
+    display: none;
+}
+
+#updated {
+    position: fixed;
+    bottom: 0;
+    right: 0;
+    text-align: right;
+    font-family: 'Ubuntu', sans-serif;
+    font-size: 64pt;
 }
